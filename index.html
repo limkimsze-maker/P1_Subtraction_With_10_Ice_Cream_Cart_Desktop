@@ -10,6 +10,9 @@
   <style>
     :root{
       --app-h:100vh;
+      --desktop-stage-w:1366px;
+      --desktop-stage-h:860px;
+      --desktop-stage-scale:1;
       --ui-font:"Comic Neue","Comic Sans MS","Comic Sans",cursive,sans-serif;
       --brown:#8a4c2b;
       --ink:#6c3457;
@@ -20,6 +23,8 @@
       --card-shadow:0 8px 20px rgba(122,53,93,.10);
       --active-ring:0 0 0 4px rgba(141,205,255,.24);
     }
+
+    .desktop-scale-wrap{display:contents;}
 
     *{box-sizing:border-box;-webkit-text-size-adjust:100%;text-size-adjust:100%;}
     html,body{height:100%;margin:0;}
@@ -645,6 +650,34 @@
       .character-frame,.seller-frame{flex-basis:170px;min-height:170px;}
       .count-stage{min-height:280px;}
     }
+
+
+    @media (min-width:900px){
+      body{overflow:hidden;}
+      .desktop-scale-wrap{
+        position:fixed;
+        inset:0;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        overflow:hidden;
+        padding:8px;
+        pointer-events:none;
+        z-index:1;
+      }
+      .app{
+        position:relative !important;
+        inset:auto !important;
+        width:var(--desktop-stage-w) !important;
+        height:var(--desktop-stage-h) !important;
+        max-width:none !important;
+        max-height:none !important;
+        margin:0 !important;
+        transform:scale(var(--desktop-stage-scale));
+        transform-origin:center center;
+        pointer-events:auto;
+      }
+    }
   </style>
   <script src="https://cdn.counter.dev/script.js" data-id="825e93b6-ce99-40ef-8bcc-125f13297433" data-utcoffset="8"></script>
 </head>
@@ -892,8 +925,13 @@
   <script>
     function setAppHeight(){ document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px'); }
     setAppHeight();
-    window.addEventListener('resize', setAppHeight);
-    window.addEventListener('orientationchange', setAppHeight);
+    window.addEventListener('resize', ()=>{ setAppHeight(); updateDesktopScale(); });
+    window.addEventListener('orientationchange', ()=>{ setAppHeight(); updateDesktopScale(); });
+    window.addEventListener('load', updateDesktopScale);
+    if(window.visualViewport){
+      window.visualViewport.addEventListener('resize', updateDesktopScale);
+      window.visualViewport.addEventListener('scroll', updateDesktopScale);
+    }
 
     window.addEventListener('wheel', (e)=>{
       if(e.ctrlKey){ e.preventDefault(); }
@@ -966,6 +1004,41 @@
     const coverSellerImg = document.getElementById('coverSellerImg');
     const coverSellerFallback = document.getElementById('coverSellerFallback');
     const app = document.getElementById('app');
+
+
+    function ensureDesktopScaleWrap(){
+      let wrap = document.getElementById('desktopScaleWrap');
+      if(wrap || !app || !app.parentNode) return wrap;
+      wrap = document.createElement('div');
+      wrap.id = 'desktopScaleWrap';
+      wrap.className = 'desktop-scale-wrap';
+      app.parentNode.insertBefore(wrap, app);
+      wrap.appendChild(app);
+      return wrap;
+    }
+
+    function updateDesktopScale(){
+      ensureDesktopScaleWrap();
+      if(!window.matchMedia('(min-width:900px)').matches){
+        document.documentElement.style.setProperty('--desktop-stage-scale', '1');
+        return;
+      }
+      const vv = window.visualViewport;
+      const viewportWidth = vv ? vv.width : window.innerWidth;
+      const viewportHeight = vv ? vv.height : window.innerHeight;
+      const designWidth = 1366;
+      const designHeight = 860;
+      const padding = 16;
+      const scale = Math.min(
+        (viewportWidth - padding) / designWidth,
+        (viewportHeight - padding) / designHeight
+      );
+      const safeScale = Math.max(0.5, Math.min(scale, 1.75));
+      document.documentElement.style.setProperty('--desktop-stage-scale', String(safeScale));
+    }
+
+    ensureDesktopScaleWrap();
+    updateDesktopScale();
     const playerNameText = document.getElementById('playerNameText');
     const levelText = document.getElementById('levelText');
     const qNumText = document.getElementById('qNumText');
