@@ -925,12 +925,12 @@
   <script>
     function setAppHeight(){ document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px'); }
     setAppHeight();
-    window.addEventListener('resize', ()=>{ setAppHeight(); updateDesktopScale(); });
-    window.addEventListener('orientationchange', ()=>{ setAppHeight(); updateDesktopScale(); });
-    window.addEventListener('load', updateDesktopScale);
+    window.addEventListener('resize', ()=>{ setAppHeight(); updateDesktopScale(); requestAnimationFrame(fitFreezerGrid); });
+    window.addEventListener('orientationchange', ()=>{ setAppHeight(); updateDesktopScale(); requestAnimationFrame(fitFreezerGrid); });
+    window.addEventListener('load', ()=>{ updateDesktopScale(); requestAnimationFrame(fitFreezerGrid); });
     if(window.visualViewport){
-      window.visualViewport.addEventListener('resize', updateDesktopScale);
-      window.visualViewport.addEventListener('scroll', updateDesktopScale);
+      window.visualViewport.addEventListener('resize', ()=>{ updateDesktopScale(); requestAnimationFrame(fitFreezerGrid); });
+      window.visualViewport.addEventListener('scroll', ()=>{ updateDesktopScale(); requestAnimationFrame(fitFreezerGrid); });
     }
 
     window.addEventListener('wheel', (e)=>{
@@ -1037,8 +1037,37 @@
       document.documentElement.style.setProperty('--desktop-stage-scale', String(safeScale));
     }
 
+    function fitFreezerGrid(){
+      const stage = document.querySelector('.count-stage');
+      const grid = document.getElementById('freezerGrid');
+      if(!stage || !grid) return;
+
+      const stageStyles = getComputedStyle(stage);
+      const gridStyles = getComputedStyle(grid);
+      const padTop = parseFloat(stageStyles.paddingTop) || 0;
+      const padRight = parseFloat(stageStyles.paddingRight) || 0;
+      const padBottom = parseFloat(stageStyles.paddingBottom) || 0;
+      const padLeft = parseFloat(stageStyles.paddingLeft) || 0;
+      const gap = parseFloat(gridStyles.gap) || 8;
+      const cols = 5;
+      const rows = 2;
+      const slotAspect = 0.84;
+
+      const usableWidth = Math.max(0, stage.clientWidth - padLeft - padRight);
+      const usableHeight = Math.max(0, stage.clientHeight - padTop - padBottom);
+      if(!usableWidth || !usableHeight) return;
+
+      const slotHeightFromAvailable = Math.max(1, (usableHeight - gap * (rows - 1)) / rows);
+      const slotWidthFromHeight = slotHeightFromAvailable * slotAspect;
+      const widthFromHeight = slotWidthFromHeight * cols + gap * (cols - 1);
+      const fittedWidth = Math.max(140, Math.min(usableWidth, 500, widthFromHeight));
+
+      grid.style.width = fittedWidth + 'px';
+    }
+
     ensureDesktopScaleWrap();
     updateDesktopScale();
+    requestAnimationFrame(fitFreezerGrid);
     const playerNameText = document.getElementById('playerNameText');
     const levelText = document.getElementById('levelText');
     const qNumText = document.getElementById('qNumText');
@@ -1326,7 +1355,10 @@
       freezerGrid.className='freezer-grid';
       if(revealReady) freezerGrid.classList.add('reveal');
       if(revealCorrect) freezerGrid.classList.add('correct');
-      if(!currentQuestion) return;
+      if(!currentQuestion){
+        fitFreezerGrid();
+        return;
+      }
       for(let i=0; i<10; i++){
         const slot=document.createElement('div');
         slot.className='ice-slot';
@@ -1343,6 +1375,7 @@
         slot.innerHTML='<div class="ice-treat"><div class="ice-scoop"></div><div class="ice-cone"></div></div>';
         freezerGrid.appendChild(slot);
       }
+      fitFreezerGrid();
     }
 
     function syncButtons(){
