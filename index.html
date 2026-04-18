@@ -661,22 +661,22 @@
         position:fixed;
         inset:0;
         display:flex;
-        align-items:center;
-        justify-content:center;
+        align-items:stretch;
+        justify-content:stretch;
         overflow:hidden;
-        padding:8px;
+        padding:4px;
         pointer-events:none;
         z-index:1;
       }
       .app{
         position:relative !important;
         inset:auto !important;
-        width:var(--desktop-stage-w) !important;
-        height:var(--desktop-stage-h) !important;
+        width:calc(100vw - 8px) !important;
+        height:calc(100vh - 8px) !important;
         max-width:none !important;
         max-height:none !important;
         margin:0 !important;
-        transform:scale(var(--desktop-stage-scale));
+        transform:none !important;
         transform-origin:center center;
         pointer-events:auto;
       }
