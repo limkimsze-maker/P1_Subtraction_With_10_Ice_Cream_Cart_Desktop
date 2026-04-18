@@ -384,6 +384,16 @@
     .note{background:#fff3df;border-style:dashed;padding:8px;text-align:center;flex:0 0 auto;}
     .equation-big{font-size:clamp(1.8rem,2.6vw,2.45rem);font-weight:900;color:#c43e78;line-height:1.02;margin:6px 0 3px;}
     .equation-mini{font-size:clamp(1.45rem,1.8vw,1.8rem);font-weight:900;color:#c43e78;line-height:1.02;margin:0;}
+    #orderEquation,#countEquation,#reasoningLine,.seller-equation{
+      display:block;
+      width:100%;
+      max-width:100%;
+      white-space:nowrap;
+      overflow:hidden;
+      text-wrap:nowrap;
+      word-break:keep-all;
+      overflow-wrap:normal;
+    }
 
     .character-frame,.seller-frame{
       width:100%;
@@ -552,17 +562,17 @@
     }
     .answer-mini{font-size:11px;font-weight:900;text-align:center;line-height:1.12;margin-top:3px;}
     .served-line{font-size:11px;font-weight:900;color:#a04271;text-align:center;min-height:12px;margin-top:3px;}
-    .answer-area{display:flex;flex-direction:column;gap:5px;min-width:0;justify-content:center;}
-    .answer-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;}
+    .answer-area{display:flex;flex-direction:column;gap:4px;min-width:0;justify-content:center;}
+    .answer-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;}
     .answer-btn{
-      width:100%;min-width:0;padding:6px 0;border:2px solid var(--brown);border-radius:12px;background:#fff8eb;
-      font-size:16px;font-weight:900;color:#6a3151;cursor:pointer;
+      width:100%;min-width:0;padding:4px 0;border:2px solid var(--brown);border-radius:12px;background:#fff8eb;
+      font-size:clamp(20px,1.65vw,24px);font-weight:900;line-height:1;color:#6a3151;cursor:pointer;
     }
     .answer-btn.active{background:#dff7ff;box-shadow:inset 0 0 0 3px #8ac8ff;}
-    .controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;}
+    .controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;}
     .game-btn{
-      min-width:68px;padding:6px 8px;border:3px solid var(--brown);border-radius:999px;background:#fff7e8;
-      font-size:13px;font-weight:900;color:#5f361d;cursor:pointer;
+      min-width:68px;padding:5px 10px;border:3px solid var(--brown);border-radius:999px;background:#fff7e8;
+      font-size:clamp(17px,1.35vw,20px);font-weight:900;line-height:1.02;color:#5f361d;cursor:pointer;
     }
     .game-btn:disabled{opacity:.55;cursor:not-allowed;}
     .btn-check{background:#dff7df;}
@@ -586,7 +596,7 @@
       gap:6px;
       flex:0 0 auto;
     }
-    .story-actions .game-btn{min-height:38px;font-size:15px;}
+    .story-actions .game-btn{min-height:44px;font-size:clamp(18px,1.45vw,22px);}
     .feedback{
       min-height:40px;
       padding:6px 10px;
@@ -635,7 +645,7 @@
       .character-frame,.seller-frame{flex-basis:132px;min-height:132px;}
       .freezer-grid{width:min(100%,460px);gap:7px;}
       .ice-slot{min-height:62px;}
-      .answer-btn{font-size:15px;}
+      .answer-btn{font-size:clamp(18px,2vw,22px);}
     }
 
     @media (max-width:980px){
@@ -928,12 +938,12 @@
   <script>
     function setAppHeight(){ document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px'); }
     setAppHeight();
-    window.addEventListener('resize', ()=>{ setAppHeight(); updateDesktopScale(); requestAnimationFrame(fitFreezerGrid); });
-    window.addEventListener('orientationchange', ()=>{ setAppHeight(); updateDesktopScale(); requestAnimationFrame(fitFreezerGrid); });
-    window.addEventListener('load', ()=>{ updateDesktopScale(); requestAnimationFrame(fitFreezerGrid); });
+    window.addEventListener('resize', ()=>{ setAppHeight(); updateDesktopScale(); requestAnimationFrame(fitFreezerGrid); requestAnimationFrame(fitEquationLines); });
+    window.addEventListener('orientationchange', ()=>{ setAppHeight(); updateDesktopScale(); requestAnimationFrame(fitFreezerGrid); requestAnimationFrame(fitEquationLines); });
+    window.addEventListener('load', ()=>{ updateDesktopScale(); requestAnimationFrame(fitFreezerGrid); requestAnimationFrame(fitEquationLines); });
     if(window.visualViewport){
-      window.visualViewport.addEventListener('resize', ()=>{ updateDesktopScale(); requestAnimationFrame(fitFreezerGrid); });
-      window.visualViewport.addEventListener('scroll', ()=>{ updateDesktopScale(); requestAnimationFrame(fitFreezerGrid); });
+      window.visualViewport.addEventListener('resize', ()=>{ updateDesktopScale(); requestAnimationFrame(fitFreezerGrid); requestAnimationFrame(fitEquationLines); });
+      window.visualViewport.addEventListener('scroll', ()=>{ updateDesktopScale(); requestAnimationFrame(fitFreezerGrid); requestAnimationFrame(fitEquationLines); });
     }
 
     window.addEventListener('wheel', (e)=>{
@@ -1068,9 +1078,32 @@
       grid.style.width = fittedWidth + 'px';
     }
 
+    function fitTextToSingleLine(el, maxPx, minPx){
+      if(!el) return;
+      const width = el.clientWidth || (el.parentElement ? el.parentElement.clientWidth : 0);
+      if(!width) return;
+      const initial = parseFloat(getComputedStyle(el).fontSize) || maxPx;
+      let size = Math.max(minPx, Math.min(maxPx, initial));
+      el.style.whiteSpace = 'nowrap';
+      el.style.fontSize = size + 'px';
+      el.style.lineHeight = '1.02';
+      while((el.scrollWidth > el.clientWidth || el.scrollHeight > el.clientHeight + 2) && size > minPx){
+        size -= 1;
+        el.style.fontSize = size + 'px';
+      }
+    }
+
+    function fitEquationLines(){
+      fitTextToSingleLine(orderEquation, 44, 18);
+      fitTextToSingleLine(countEquation, 44, 18);
+      fitTextToSingleLine(reasoningLine, 44, 18);
+      document.querySelectorAll('.seller-equation').forEach(el => fitTextToSingleLine(el, 44, 18));
+    }
+
     ensureDesktopScaleWrap();
     updateDesktopScale();
     requestAnimationFrame(fitFreezerGrid);
+    requestAnimationFrame(fitEquationLines);
     const playerNameText = document.getElementById('playerNameText');
     const levelText = document.getElementById('levelText');
     const qNumText = document.getElementById('qNumText');
@@ -1394,6 +1427,7 @@
       sellerSpeech.className='speech';
       sellerSpeech.innerHTML='New order ready. Read the order, choose the answer, then press <strong>Check</strong>.';
       hideReasoning();
+      requestAnimationFrame(fitEquationLines);
     }
 
     function setSellerResult(correct, timedOut=false){
@@ -1409,6 +1443,7 @@
         sellerSpeech.innerHTML = `<strong>${funnyWrongLine()}</strong><br>The correct answer is <strong>${currentQuestion.answer}</strong>.<br><span class="seller-equation">${currentQuestion.reasoning}</span>`;
         if(timedOut) sellerSpeech.innerHTML += '<br>Time ran out on this order.';
       }
+      requestAnimationFrame(fitEquationLines);
     }
 
     function showReasoning(correct){
@@ -1417,6 +1452,7 @@
         ? (currentQuestion.type === 'missing10' ? 'Yes! This shows what was sold.' : 'Yes! This shows what is left.')
         : (currentQuestion.type === 'missing10' ? 'Let’s fix it: this shows what was sold.' : 'Let’s fix it: this shows what is left.');
       reasoningLine.textContent = currentQuestion.reasoning;
+      requestAnimationFrame(fitEquationLines);
     }
 
     function hideReasoning(){
@@ -1576,6 +1612,7 @@
       syncButtons();
       updateTop();
       setStep(1);
+      requestAnimationFrame(fitEquationLines);
       feedback.className='feedback';
       feedback.textContent = levels[currentLevel].counted ? 'Assessment order is ready!' : 'Practice order is ready!';
       startTimer();
