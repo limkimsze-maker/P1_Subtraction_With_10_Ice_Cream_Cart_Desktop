@@ -532,8 +532,9 @@
     .reasoning-panel.bad{background:rgba(255,241,235,.98);border-color:var(--bad);color:#8f1e15;}
     .reasoning-title{font-size:11px;margin-bottom:2px;}
     .reasoning-line{font-size:18px;letter-spacing:.02em;line-height:1.05;}
-    #countEquation,#reasoningLine{font-size:clamp(1.8rem,2.6vw,2.45rem);font-weight:900;color:#c43e78 !important;line-height:1.02;}
+    #countEquation,#reasoningLine,.seller-equation{font-size:clamp(1.8rem,2.6vw,2.45rem);font-weight:900;color:#c43e78 !important;line-height:1.02;}
     #countEquation{margin:6px 0 3px;}
+    .seller-equation{display:block;margin-top:4px;}
 
     .answer-panel{
       display:grid;
@@ -1400,12 +1401,12 @@
         setSellerArt('good');
         sellerSpeech.className='speech good';
         sellerSpeech.innerHTML = currentQuestion.type === 'missing10'
-          ? `<strong>${funnyCorrectLine()}</strong><br>You found that <strong>${currentQuestion.answer}</strong> ice creams were sold.<br>${currentQuestion.reasoning}`
-          : `<strong>${funnyCorrectLine()}</strong><br>You found that <strong>${currentQuestion.left}</strong> ice creams are left.<br>${currentQuestion.reasoning}`;
+          ? `<strong>${funnyCorrectLine()}</strong><br>You found that <strong>${currentQuestion.answer}</strong> ice creams were sold.<br><span class="seller-equation">${currentQuestion.reasoning}</span>`
+          : `<strong>${funnyCorrectLine()}</strong><br>You found that <strong>${currentQuestion.left}</strong> ice creams are left.<br><span class="seller-equation">${currentQuestion.reasoning}</span>`;
       } else {
         setSellerArt('bad');
         sellerSpeech.className='speech bad';
-        sellerSpeech.innerHTML = `<strong>${funnyWrongLine()}</strong><br>The correct answer is <strong>${currentQuestion.answer}</strong>.<br>${currentQuestion.reasoning}`;
+        sellerSpeech.innerHTML = `<strong>${funnyWrongLine()}</strong><br>The correct answer is <strong>${currentQuestion.answer}</strong>.<br><span class="seller-equation">${currentQuestion.reasoning}</span>`;
         if(timedOut) sellerSpeech.innerHTML += '<br>Time ran out on this order.';
       }
     }
